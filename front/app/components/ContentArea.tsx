@@ -1,32 +1,5 @@
 "use client"
-import { usePathname } from 'next/navigation'
-import { ReactNode, useMemo } from 'react'
-import { motion } from 'framer-motion'
-
+import { ReactNode } from 'react'
 export default function ContentArea({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
-
-  const accentClass = useMemo(() => {
-    switch (pathname) {
-      case '/boss':
-        return 'accent-teal'
-      default:
-        return ''
-    }
-  }, [pathname])
-
-  return (
-    <main className={`flex-1 ml-64 bg-background dark:bg-blacksection content-bg ${accentClass} min-h-screen`}>
-      <motion.div
-        key={pathname}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.4, ease: "easeInOut" }}
-        className="container py-8"
-      >
-        {children}
-      </motion.div>
-    </main>
-  )
+  return <main className="desk-content"><div className="desk-content-inner">{children}</div></main>
 }
