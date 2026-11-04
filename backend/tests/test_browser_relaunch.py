@@ -25,8 +25,8 @@ def test_dead_browser_relaunches_with_same_profile(tmp_path, monkeypatch):
         driver.stop = AsyncMock()
         factory = MagicMock()
         factory.start = AsyncMock(return_value=driver)
-        import playwright.async_api
-        monkeypatch.setattr(playwright.async_api, 'async_playwright', lambda: factory)
+        import patchright.async_api
+        monkeypatch.setattr(patchright.async_api, 'async_playwright', lambda: factory)
         await session.open()
         assert session.context is fresh
         assert session.is_open

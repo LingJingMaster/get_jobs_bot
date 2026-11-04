@@ -59,6 +59,8 @@ async def collect_jobs():
     from .collector import search_urls
     if _collection_task and not _collection_task.done():
         raise HTTPException(status_code=409, detail="采集任务正在运行")
+    if browser.challenge:
+        raise HTTPException(status_code=409, detail="浏览器检测到刷新循环或安全验证，请人工处理后重新打开浏览器")
     if not browser.context or not browser.logged_in:
         raise HTTPException(status_code=409, detail="请先打开浏览器并登录 Boss")
     saved = get_boss_config()
@@ -262,7 +264,7 @@ def jobs_reload() -> dict[str, Any]:
 
 @app.get("/api/boss/status")
 def boss_status() -> dict[str, Any]:
-    return {"platform": "boss", **_worker, "browserOpen": browser.is_open, "isLoggedIn": browser.logged_in, "browserMessage": browser.message}
+    return {"platform": "boss", **_worker, "browserOpen": browser.is_open, "isLoggedIn": browser.logged_in, "browserMessage": browser.message, "challenge": browser.challenge}
 
 @app.get("/api/jobs/login-status/stream")
 async def login_status_stream() -> StreamingResponse:

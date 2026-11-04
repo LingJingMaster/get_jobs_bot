@@ -2,7 +2,7 @@ import asyncio
 from urllib.parse import urlsplit, parse_qs
 from unittest.mock import AsyncMock
 import pytest
-from backend.app.collector import search_urls, ensure_available, CollectionBlocked
+from backend.app.collector import search_urls, ensure_available, CollectionBlocked, security_message
 from backend.app.options import options
 
 
@@ -19,6 +19,12 @@ def test_search_filters_and_encoding():
         search_urls({'keywords': 'Python', 'cityCode': '不支持的城市名'})
     with pytest.raises(ValueError):
         search_urls({'keywords': '[]'})
+
+
+def test_security_redirect_is_explicit():
+    url = 'https://www.zhipin.com/web/geek/jobs?query=FDE&_security_check=5_1793812915239'
+    assert security_message(url)
+    assert '验证' in security_message(url)
 
 
 def test_security_check_stops():

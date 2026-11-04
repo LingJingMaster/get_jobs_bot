@@ -9,7 +9,7 @@ dependencies = [
   "pydantic-settings>=2.6,<3",
   "python-multipart>=0.0.12,<1",
   "httpx>=0.27,<1",
-  "playwright>=1.48,<2",
+  "patchright>=1.52,<2",
   "pillow>=11,<13",
 ]
 

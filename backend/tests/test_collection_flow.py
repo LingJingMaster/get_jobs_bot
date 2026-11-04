@@ -9,13 +9,19 @@ class Element:
         self.first = self
     async def wait_for(self, **kwargs):
         pass
+    async def fill(self, value):
+        pass
+    async def press(self, key):
+        pass
+    async def click(self):
+        pass
     async def evaluate_all(self, expression):
         return ['https://www.zhipin.com/job_detail/example.html?source=search']
     async def count(self):
         return 0 if self.selector.startswith('.verify-wrap') else 1
     async def inner_text(self, **kwargs):
-        return {' .unused': '', '.job-name h1, .name h1': 'Python',
-                '.sider-company .company-info a, .company-info a': '公司',
+        return {' .unused': '', '.job-name h1': 'Python',
+                '.sider-company .company-info a': '公司',
                 '.info-primary .salary': '20-30K'}.get(self.selector, '')
 
 
@@ -27,6 +33,8 @@ class Page:
         return Element(selector)
     async def goto(self, url, **kwargs):
         self.url = url
+    async def wait_for_load_state(self, *args, **kwargs):
+        pass
     async def close(self):
         self.closed = True
 
