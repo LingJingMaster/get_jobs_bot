@@ -12,11 +12,14 @@ __pycache__/
 *.db-*
 *.sqlite*
 backend/data/
+data/
 backend/db/
 .boss-profile/
 browser-data/
 cookies/
 node_modules/
 .next/
+front/AGENTS.md
+front/CLAUDE.md
 out/
 *.tsbuildinfo

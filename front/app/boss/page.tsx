@@ -578,11 +578,13 @@ export default function BossPage() {
     const controller = new AbortController()
     const poll = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/boss/status`, { signal: controller.signal })
+        const response = await fetch(`${API_BASE}/api/boss/status`, { signal: controller.signal, cache: 'no-store' })
         if (!response.ok) return
         const data = await response.json()
+        setIsLoggedIn(Boolean(data.isLoggedIn))
+        setCheckingLogin(false)
         setIsDelivering(Boolean(data.running))
-        setTaskMessage(data.message || '未启动')
+        setTaskMessage(data.message || data.browserMessage || '未启动')
       } catch { /* 保持最后一次确认的任务状态 */ }
     }
     void poll()
