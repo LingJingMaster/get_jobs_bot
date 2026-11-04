@@ -169,9 +169,11 @@ class BrowserSession:
 
     async def _close(self):
         if self.monitor:
-            self.monitor.cancel()
-            await asyncio.gather(self.monitor, return_exceptions=True)
+            monitor = self.monitor
             self.monitor = None
+            monitor.cancel()
+            # Do not wait on a page transport while stopping. A cancelled
+            # monitor is harmless and must never block close/reopen.
         context, driver = self.context, self.driver
         self.context = None
         self.driver = None
@@ -184,7 +186,7 @@ class BrowserSession:
         # Closing an already-terminated Chromium must not prevent reopening.
         if context:
             try:
-                await context.close()
+                await asyncio.wait_for(context.close(), timeout=5)
             except Exception:
                 pass
         if driver:
