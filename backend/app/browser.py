@@ -13,14 +13,37 @@ class BrowserSession:
         self.monitor: asyncio.Task | None = None
         self.logged_in = False
         self.message = "浏览器未启动"
+        self._disconnected = False
+
+    @property
+    def is_open(self):
+        if self.context is None or self._disconnected:
+            return False
+        try:
+            return any(not page.is_closed() for page in self.context.pages)
+        except Exception:
+            return False
+
+    def _on_closed(self, context):
+        # An event from an old context must never invalidate a newly opened one.
+        if self.context is context:
+            self._disconnected = True
+            self.logged_in = False
+            self.message = "浏览器窗口已关闭，请重新打开"
 
     async def open(self):
         async with self.lock:
             if self.context is not None:
-                if self.context.pages:
-                    if self.monitor is None or self.monitor.done():
-                        self.monitor = asyncio.create_task(self._monitor())
-                    return
+                if self.is_open:
+                    try:
+                        page = next(p for p in self.context.pages if not p.is_closed())
+                        await page.bring_to_front()
+                    except Exception:
+                        self._disconnected = True
+                    else:
+                        if self.monitor is None or self.monitor.done():
+                            self.monitor = asyncio.create_task(self._monitor())
+                        return
                 await self._close()
             from playwright.async_api import async_playwright
             try:
@@ -28,6 +51,11 @@ class BrowserSession:
                 self.profile.chmod(0o700)
                 self.driver = await async_playwright().start()
                 self.context = await self.driver.chromium.launch_persistent_context(str(self.profile), headless=False)
+                self._disconnected = False
+                context = self.context
+                context.on("close", lambda *_: self._on_closed(context))
+                if context.browser:
+                    context.browser.on("disconnected", lambda *_: self._on_closed(context))
                 self.context.set_default_timeout(10000)
                 page = self.context.pages[0] if self.context.pages else await self.context.new_page()
                 await page.goto("https://www.zhipin.com", wait_until="domcontentloaded", timeout=30000)
@@ -45,6 +73,10 @@ class BrowserSession:
             "header a[href*='/web/geek/resume']", "header a[href*='/web/geek/chat']",
         )
         while self.context:
+            if not self.is_open:
+                self.logged_in = False
+                self.message = "浏览器窗口已关闭，请重新打开"
+                return
             try:
                 pages = list(self.context.pages)
                 if not pages:
@@ -90,15 +122,22 @@ class BrowserSession:
             self.monitor.cancel()
             await asyncio.gather(self.monitor, return_exceptions=True)
             self.monitor = None
-        try:
-            if self.context:
-                await self.context.close()
-        finally:
-            self.context = None
-            self.logged_in = False
-            if self.driver:
-                await self.driver.stop()
-                self.driver = None
+        context, driver = self.context, self.driver
+        self.context = None
+        self.driver = None
+        self.logged_in = False
+        self._disconnected = True
+        # Closing an already-terminated Chromium must not prevent reopening.
+        if context:
+            try:
+                await context.close()
+            except Exception:
+                pass
+        if driver:
+            try:
+                await driver.stop()
+            except Exception:
+                pass
 
     async def close(self):
         async with self.lock:

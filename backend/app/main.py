@@ -262,7 +262,7 @@ def jobs_reload() -> dict[str, Any]:
 
 @app.get("/api/boss/status")
 def boss_status() -> dict[str, Any]:
-    return {"platform": "boss", **_worker, "browserOpen": browser.context is not None, "isLoggedIn": browser.logged_in, "browserMessage": browser.message}
+    return {"platform": "boss", **_worker, "browserOpen": browser.is_open, "isLoggedIn": browser.logged_in, "browserMessage": browser.message}
 
 @app.get("/api/jobs/login-status/stream")
 async def login_status_stream() -> StreamingResponse:
