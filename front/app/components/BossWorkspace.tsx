@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import PageHeader from '@/app/components/PageHeader'
 import AnalysisContent from '@/app/boss/analysis/AnalysisContent'
 import { API_BASE } from '@/lib/api'
@@ -730,13 +729,9 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
       />
 
       <p role="status" aria-live="polite" className="text-sm text-muted-foreground">任务状态：{taskMessage}</p>
-      <Tabs defaultValue="config" className="w-full">
-        <TabsList className={mode === "collect" ? "grid w-full grid-cols-2" : "hidden"}>
-          <TabsTrigger value="config">搜索与采集</TabsTrigger>
-          <TabsTrigger value="analytics">岗位库与 JD</TabsTrigger>
-        </TabsList>
+      <div className="w-full space-y-6">
 
-        <TabsContent value="config" className="space-y-6 mt-6">
+        <section className="space-y-6">
           {/* 平台说明 */}
           <Card className="animate-in fade-in slide-in-from-bottom-5 duration-700">
             <CardHeader>
@@ -1209,12 +1204,14 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
 
         
           </>}
-        </TabsContent>
+        </section>
 
-        <TabsContent value="analytics" className="space-y-6 mt-6">
-          <AnalysisContent />
-        </TabsContent>
-      </Tabs>
+        {mode === "collect" && <section aria-label="已采集岗位与 JD" className="space-y-6 border-t border-border pt-6">
+          <h2 className="text-xl font-semibold">已采集岗位与 JD</h2>
+          <p className="text-sm text-muted-foreground">浏览和筛选岗位记录，可将有完整 JD 的岗位用于简历定制。</p>
+          <AnalysisContent showHeader={false} />
+        </section>}
+      </div>
 
       {/* 图片简历大图预览 */}
       {showResumePreview && resumePreviewUrl && createPortal(
