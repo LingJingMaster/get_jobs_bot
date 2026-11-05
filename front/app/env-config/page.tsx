@@ -21,7 +21,6 @@ export default function EnvConfig() {
   const [showApiKey, setShowApiKey] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null)
 
   // 从数据库加载配置
@@ -69,6 +68,7 @@ export default function EnvConfig() {
   const handleSave = async (silent: boolean = false) => {
     try {
       setSaving(true)
+      setSaveResult(null)
 
       const configMap = {
         HOOK_URL: envConfig.hookUrl,
@@ -95,7 +95,6 @@ export default function EnvConfig() {
       if (result.success) {
         if (!silent) {
           setSaveResult({ success: true, message: '保存成功' })
-          setShowSaveDialog(true)
         }
       } else {
         throw new Error(result.message || '保存配置失败')
@@ -104,7 +103,6 @@ export default function EnvConfig() {
       console.error('保存配置失败:', error)
       if (!silent) {
         setSaveResult({ success: false, message: '保存配置失败：网络或服务异常。' })
-        setShowSaveDialog(true)
       }
     } finally {
       setSaving(false)
@@ -120,13 +118,16 @@ export default function EnvConfig() {
         actions={
           <Button
             onClick={() => handleSave(false)}
+            disabled={saving || loading}
             size="sm"
             className="px-4"
           >
-            <BiSave className="mr-1" /> 保存配置
+            <BiSave className="mr-1" /> {saving ? "正在保存…" : "保存配置"}
           </Button>
         }
       />
+
+      {saveResult && <p role="status" className={`text-sm ${saveResult.success ? "text-primary" : "text-destructive"}`}>{saveResult.message}</p>}
 
       {loading && (
         <Card className="border-blue-500/20 bg-blue-500/5">
@@ -264,34 +265,7 @@ export default function EnvConfig() {
           </CardContent>
         </Card>
 
-        {/* 操作按钮已移至页头右上角 */}
 
-        {/* 保存结果弹框 —— 与 Boss 配置一致样式 */}
-        {showSaveDialog && saveResult && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" role="dialog" aria-modal="true">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-[92%] max-w-sm border border-gray-200 dark:border-neutral-800 animate-in fade-in zoom-in-95">
-              <Card className="border-0">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <BiSave className={saveResult.success ? 'text-green-500' : 'text-red-500'} />
-                    {saveResult.success ? '保存成功' : '保存失败'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm text-muted-foreground mb-4">{saveResult.message}</p>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      onClick={() => setShowSaveDialog(false)}
-                      className={`rounded-full px-4 ${saveResult.success ? '     bg-primary text-primary-foreground' : '     text-white'}`}
-                    >
-                      知道了
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
