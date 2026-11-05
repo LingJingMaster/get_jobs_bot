@@ -27,6 +27,16 @@ def test_upload_validation_and_preview(tmp_path, monkeypatch):
             assert preview.status_code == 200
             assert preview.headers["content-type"] == "image/png"
             assert (await client.get("/api/boss/config")).json()["resumeImage"] == metadata
+            original = preview.content
+            bad = await client.post(url, files={"file": ("bad.pdf", b"invalid pdf", "application/pdf")})
+            assert bad.status_code == 400
+            assert (await client.get(metadata["previewUrl"])).content == original
+            pdf = BytesIO()
+            Image.new("RGB", (100, 140), "white").save(pdf, "PDF")
+            converted = await client.post(url, files={"file": ("resume.pdf", pdf.getvalue(), "application/pdf")})
+            assert converted.status_code == 200
+            result = Image.open(BytesIO((await client.get(metadata["previewUrl"])).content))
+            assert result.format == "PNG" and result.width == 1440
             events = await client.get("/api/boss/events")
             assert events.text.startswith("data: ")
             assert events.text.endswith("\n\n")

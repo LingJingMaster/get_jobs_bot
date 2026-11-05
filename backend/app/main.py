@@ -312,30 +312,22 @@ def resume_content() -> FileResponse:
 
 @app.post("/api/boss/config/resume-image")
 async def upload_resume_image(file: UploadFile = File(...)) -> dict[str, Any]:
-    if file.content_type not in {"image/jpeg", "image/png", "image/webp"}:
-        raise HTTPException(status_code=400, detail="只支持 JPG、PNG 或 WebP 图片")
-    content = await file.read(10 * 1024 * 1024 + 1)
-    await file.close()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="图片大小不能超过 10MB")
-    from PIL import Image, UnidentifiedImageError
-    from io import BytesIO
+    from .resume import render_resume, MAX_BYTES
     import tempfile
+    content = await file.read(MAX_BYTES + 1)
+    await file.close()
+    if len(content) > MAX_BYTES:
+        raise HTTPException(status_code=413, detail="文件大小不能超过 10MB")
     try:
-        with Image.open(BytesIO(content)) as image:
-            if image.format not in {"JPEG", "PNG", "WEBP"} or image.width * image.height > 20_000_000:
-                raise ValueError("图片格式或尺寸无效")
-            image.load()
-            output = BytesIO()
-            image.convert("RGB").save(output, format="PNG")
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
-        raise HTTPException(status_code=400, detail="无法读取图片或图片尺寸过大") from exc
+        output = await asyncio.to_thread(render_resume, content, file.filename or '')
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(dir=UPLOAD_DIR, delete=False) as temp:
-        temp.write(output.getvalue())
+        temp.write(output)
         temp_path = Path(temp.name)
     temp_path.replace(UPLOAD_DIR / "boss-resume.png")
-    return {"success": True, "message": "图片简历上传成功", "resumeImage": resume_metadata()}
+    return {"success": True, "message": "简历已保存为 PNG 图片，请预览确认排版", "resumeImage": resume_metadata()}
 
 @app.get("/api/config")
 def get_configs() -> dict[str, Any]:

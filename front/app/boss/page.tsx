@@ -472,18 +472,18 @@ export default function BossPage() {
     event.target.value = ''
     if (!file) return
 
-    const allowedTypes = new Set(['image/png', 'image/jpeg', 'image/gif'])
-    const allowedExtension = /\.(png|jpe?g|gif)$/i.test(file.name)
+    const allowedTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+    const allowedExtension = /\.(png|jpe?g|webp|pdf|docx?)$/i.test(file.name)
     if ((!allowedTypes.has(file.type) && !allowedExtension) || file.size === 0) {
-      setResumeImageMessage({ success: false, text: '请选择有效的 PNG、JPG、JPEG 或 GIF 图片。' })
+      setResumeImageMessage({ success: false, text: '请选择 PNG、JPG、WebP、PDF 或 Word 文件。' })
       return
     }
     if (file.size > 10 * 1024 * 1024) {
-      setResumeImageMessage({ success: false, text: '图片大小不能超过 10MB。' })
+      setResumeImageMessage({ success: false, text: '文件大小不能超过 10MB。' })
       return
     }
 
-    setLocalResumePreviewUrl(URL.createObjectURL(file))
+    setLocalResumePreviewUrl(null)
     setResumeImageUploading(true)
     setResumeImageMessage(null)
     try {
@@ -495,12 +495,12 @@ export default function BossPage() {
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        throw new Error(data.message || `上传失败（HTTP ${response.status}）`)
+        throw new Error(data.detail || data.message || `上传失败（HTTP ${response.status}）`)
       }
 
       setResumeImage(data.resumeImage || { exists: true })
       setLocalResumePreviewUrl(null)
-      setResumeImageMessage({ success: true, text: '图片简历上传成功，可以预览或重新上传。' })
+      setResumeImageMessage({ success: true, text: data.message || '简历已转为图片，请预览确认排版。' })
     } catch (error) {
       setLocalResumePreviewUrl(null)
       setResumeImageMessage({
@@ -820,13 +820,13 @@ export default function BossPage() {
                     <div>
                       <Label className="text-base font-medium">图片简历</Label>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        支持 PNG、JPG、JPEG、GIF，单张不超过 10MB。重新上传会替换当前图片。
+                        支持 PNG、JPG、WebP、PDF、Word（DOC/DOCX），文件不超过 10MB。文档限 1–5 页，在本机转换并拼成一张 PNG 长图。重新上传成功后替换当前图片；请预览确认文字与排版。
                       </p>
                     </div>
                     <input
                       ref={resumeImageInputRef}
                       type="file"
-                      accept="image/png,image/jpeg,image/gif,.png,.jpg,.jpeg,.gif"
+                      accept=".png,.jpg,.jpeg,.webp,.pdf,.doc,.docx"
                       onChange={handleResumeImageChange}
                       className="hidden"
                     />
@@ -837,7 +837,7 @@ export default function BossPage() {
                       onClick={() => resumeImageInputRef.current?.click()}
                     >
                       <BiUpload className="mr-2" />
-                      {resumeImageUploading ? '正在上传…' : resumeImage.exists ? '重新上传' : '选择并上传图片'}
+                      {resumeImageUploading ? '正在上传并转换…' : resumeImage.exists ? '重新上传简历' : '上传图片 / PDF / Word'}
                     </Button>
                     {resumeImage.exists && (
                       <p className="text-xs text-muted-foreground">
