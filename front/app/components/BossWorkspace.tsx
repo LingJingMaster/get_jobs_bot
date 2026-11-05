@@ -729,9 +729,9 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
       />
 
       <p role="status" aria-live="polite" className="text-sm text-muted-foreground">任务状态：{taskMessage}</p>
-      <div className="w-full space-y-6">
+      <div className={mode === "collect" ? "collection-workspace" : "w-full space-y-6"}>
 
-        <section className="space-y-6">
+        <section aria-label="搜索与采集条件" className={mode === "collect" ? "collection-settings space-y-4" : "space-y-6"}>
           {/* 平台说明 */}
           <Card className="animate-in fade-in slide-in-from-bottom-5 duration-700">
             <CardHeader>
@@ -1206,7 +1206,7 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
           </>}
         </section>
 
-        {mode === "collect" && <section aria-label="已采集岗位与 JD" className="space-y-6 border-t border-border pt-6">
+        {mode === "collect" && <section aria-label="已采集岗位与 JD" className="collection-library space-y-4">
           <h2 className="text-xl font-semibold">已采集岗位与 JD</h2>
           <p className="text-sm text-muted-foreground">浏览和筛选岗位记录，可将有完整 JD 的岗位用于简历定制。</p>
           <AnalysisContent showHeader={false} />

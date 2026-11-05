@@ -101,5 +101,21 @@ button, input, textarea, select { font: inherit; }
 .is-selected .option-mark { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
 .select-option:focus-visible, .ui-checkbox:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 900px) { .desk-sidebar { position: static; width: 100%; min-height: auto; padding: 16px 20px; display: block; }.sidebar-brand { padding-bottom: 16px; }.sidebar-nav { display: flex; gap: 4px; overflow-x: auto; }.nav-label, .tools-label, .sidebar-footer { display: none; }.nav-item { white-space: nowrap; }.desk-content { margin-left: 0; }.desk-content-inner { width: 100%; padding: 28px 16px 64px; }.page-header-unified { flex-wrap: wrap; }.page-header-actions { width: 100%; }.ui-card-header { padding: 18px 16px; }.ui-card-content { padding: 0 16px 20px; }.desk-header { display: block; }.quiet-action { margin-top: 18px; width: fit-content; }.step-strip { grid-template-columns: 1fr; }.step-cell { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }.step-cell:last-child { border-bottom: 0; }.desk-grid { grid-template-columns: 1fr; gap: 28px; } }
+.collection-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.collection-settings, .collection-library { min-width: 0; }
+@media (min-width: 1200px) {
+  .collection-workspace { grid-template-columns: minmax(280px, 0.8fr) minmax(0, 2fr); gap: 24px; }
+  .collection-settings .grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .collection-settings .ui-card-header { padding: 16px 18px 12px; }
+  .collection-settings .ui-card-content { padding: 0 18px 18px; }
+  .collection-settings .ui-card-title { font-size: 15px; }
+  .collection-library > .space-y-8 > .grid:first-of-type { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .collection-library .ui-card-content > .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1700px) {
+  .collection-workspace { grid-template-columns: minmax(340px, 0.8fr) minmax(0, 2fr); }
+  .collection-settings .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .collection-library > .space-y-8 > .grid:first-of-type { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 
