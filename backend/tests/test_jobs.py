@@ -1,3 +1,10 @@
+def test_infer_job_fields_from_jd():
+    from backend.app.jobs import infer_job_fields
+    job = infer_job_fields({'jobName': 'AI应用工程师', 'jobDescription': '本科，3-5年经验，负责大模型和软件系统开发'})
+    assert job['degree'] == '本科'
+    assert job['experience'] == '3-5年'
+    assert '人工智能' in job['industry']
+
 import asyncio
 import httpx
 from backend.app import main

@@ -24,6 +24,31 @@ def salary_range(raw: str):
     return float(match[1]), float(match[2])
 
 
+def infer_job_fields(job: dict) -> dict:
+    """Fill analytics fields from the captured JD without inventing facts."""
+    text = ' '.join(str(job.get(key) or '') for key in ('jobName', 'jobDescription'))
+    if not job.get('degree'):
+        found = [label for label, pattern in (
+            ('博士', r'博士'), ('硕士', r'硕士|研究生'), ('本科', r'本科'),
+            ('大专', r'大专|专科'), ('高中', r'高中|中专')) if re.search(pattern, text)]
+        job['degree'] = '、'.join(found) if found else '未标注'
+    if not job.get('experience'):
+        found = []
+        for label, pattern in (('应届/实习', r'应届|实习生|在校生'), ('无经验', r'无需经验|经验不限'),
+                               ('1年以内', r'1年以下|一年以下'), ('1-3年', r'1[-～至]3年'),
+                               ('3-5年', r'3[-～至]5年'), ('5-10年', r'5[-～至]10年'), ('10年以上', r'10年以上')):
+            if re.search(pattern, text): found.append(label)
+        job['experience'] = '、'.join(found) if found else '未标注'
+    if not job.get('industry'):
+        # Industry is only inferred from explicit company/job vocabulary; otherwise leave it unknown.
+        found = [label for label, pattern in (
+            ('人工智能', r'AI|人工智能|大模型|机器学习'), ('互联网/软件', r'互联网|软件|SaaS|系统开发'),
+            ('金融', r'金融|银行|证券|保险'), ('教育', r'教育|学校|培训'), ('医疗健康', r'医疗|医药|健康'),
+            ('制造业', r'制造|工厂|机械|工业'), ('广告传媒', r'广告|传媒|营销')) if re.search(pattern, text, re.I)]
+        job['industry'] = '、'.join(found) if found else '未标注'
+    return job
+
+
 def filter_reason(job: dict, config: dict, blacklist: list[dict]) -> str | None:
     fields = {'company': 'companyName', 'job': 'jobName', 'recruiter': 'hrName'}
     for entry in blacklist:
@@ -78,7 +103,7 @@ def selected_jobs(db: sqlite3.Connection, filters: dict) -> list[dict]:
     result = []
     statuses = parse_list(filters.get('statuses', ''))
     for row in db.execute('SELECT id,data,created_at FROM boss_jobs ORDER BY id DESC'):
-        job = {**json.loads(row[1]), 'id': row[0], 'createdAt': row[2]}
+        job = infer_job_fields({**json.loads(row[1]), 'id': row[0], 'createdAt': row[2]})
         if statuses and job.get('deliveryStatus') not in statuses:
             continue
         if any(filters.get(key) and filters[key] not in str(job.get(key, '')) for key in ('location', 'experience', 'degree')):
@@ -97,7 +122,7 @@ def selected_jobs(db: sqlite3.Connection, filters: dict) -> list[dict]:
 
 def statistics(items: list[dict]) -> dict:
     def counts(field):
-        return [{'name': name, 'value': count} for name, count in Counter(str(i.get(field) or '未知') for i in items).most_common()]
+            return [{'name': name, 'value': count} for name, count in Counter(str(i.get(field) or '未标注') for i in items).most_common()]
     status = Counter(i.get('deliveryStatus') for i in items)
     salaries = [sum(r) / 2 for i in items if (r := salary_range(i.get('salary', '')))]
     charts = {name: counts(field) for name, field in {
