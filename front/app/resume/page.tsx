@@ -86,5 +86,16 @@ export default function ResumePage() {
         {version.status === 'draft' ? <><label className="select-option"><input type="checkbox" className="ui-checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />已核对经历、日期、数字和联系方式，并补齐占位符</label><Button onClick={approve} disabled={!confirmed || !!busy}>确认并生成投递图片</Button><p className="text-xs text-muted-foreground">此处编辑在确认时保存；下载按钮导出当前已保存版本。</p></> : <Link className="text-link" href="/delivery">前往投递与沟通</Link>}
       </>}
     </CardContent></Card>}
+    <aside className="resume-workflow-note" aria-label="简历优化流程说明">
+      <div>
+        <p className="resume-workflow-note-title">流程说明</p>
+        <p>采集岗位 JD → 上传并核对原简历 → Resume Builder 按岗位生成草稿 → 可选用 Humanizer-zh 优化表达 → 你核对确认 → 生成投递版本。</p>
+      </div>
+      <div className="resume-workflow-note-skills">
+        <span>使用的开源 Skill</span>
+        <a href="https://github.com/Jichengyuuuuu/resume-builder-skill" target="_blank" rel="noreferrer">Resume Builder</a>
+        <a href="https://github.com/op7418/humanizer-zh" target="_blank" rel="noreferrer">Humanizer-zh</a>
+      </div>
+    </aside>
   </div>
 }
