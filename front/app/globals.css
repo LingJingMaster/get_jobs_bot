@@ -103,6 +103,14 @@ button, input, textarea, select { font: inherit; }
 @media (max-width: 900px) {
   .resume-workflow-note { align-items: flex-start; flex-direction: column; }
   .resume-workflow-note-skills { flex-wrap: wrap; white-space: normal; } .desk-sidebar { position: static; width: 100%; min-height: auto; padding: 16px 20px; display: block; }.sidebar-brand { padding-bottom: 16px; }.sidebar-nav { display: flex; gap: 4px; overflow-x: auto; }.nav-label, .tools-label, .sidebar-footer { display: none; }.nav-item { white-space: nowrap; }.desk-content { margin-left: 0; }.desk-content-inner { width: 100%; padding: 28px 16px 64px; }.page-header-unified { flex-wrap: wrap; }.page-header-actions { width: 100%; }.ui-card-header { padding: 18px 16px; }.ui-card-content { padding: 0 16px 20px; }.desk-header { display: block; }.quiet-action { margin-top: 18px; width: fit-content; }.step-strip { grid-template-columns: 1fr; }.step-cell { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }.step-cell:last-child { border-bottom: 0; }.desk-grid { grid-template-columns: 1fr; gap: 28px; } }
+.resume-generation-progress { padding: 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+.resume-generation-bar { display: block; appearance: none; width: 100%; height: 6px; margin: 12px 0; border: 0; border-radius: 3px; overflow: hidden; background: var(--accent-soft); accent-color: var(--accent); }
+.resume-generation-bar::-webkit-progress-bar { background: var(--accent-soft); }
+.resume-generation-bar::-webkit-progress-value { background: var(--accent); }
+.resume-generation-bar::-moz-progress-bar { background: var(--accent); }
+.resume-generation-bar:indeterminate { background: linear-gradient(90deg, var(--accent-soft) 0%, var(--accent) 45%, var(--accent-soft) 75%); background-size: 200% 100%; animation: resume-progress 1.8s linear infinite; }
+.resume-generation-bar:indeterminate::-webkit-progress-bar { background: transparent; }
+@keyframes resume-progress { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .resume-workflow-note { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 8px; padding: 14px 18px; border-top: 1px solid var(--line); color: var(--muted-ink); font-size: 12px; line-height: 1.65; }
 .resume-workflow-note-title { margin: 0 0 3px; color: var(--ink); font-weight: 600; }
 .resume-workflow-note p { margin: 0; }

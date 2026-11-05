@@ -26,6 +26,15 @@ export default function ResumePage() {
   const [version, setVersion] = useState<Version | null>(null)
   const [edited, setEdited] = useState('')
   const [confirmed, setConfirmed] = useState(false)
+  const [generation, setGeneration] = useState<'idle' | 'running' | 'done' | 'error'>('idle')
+  const [elapsed, setElapsed] = useState(0)
+  const [generationHumanize, setGenerationHumanize] = useState(false)
+  useEffect(() => {
+    if (generation !== 'running') return
+    const started = Date.now()
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000)
+    return () => clearInterval(timer)
+  }, [generation])
   const job = jobs.find(j => String(j.id) === jobId)
   useEffect(() => {
     Promise.all([fetch(`${API_BASE}/api/boss/list?size=1000`).then(result), fetch(`${API_BASE}/api/resume-workflow`).then(result)])
@@ -43,12 +52,15 @@ export default function ResumePage() {
     } catch (e) { setMessage((e as Error).message) } finally { setBusy('') }
   }
   const generate = async () => {
+    if (busy) return
+    setGeneration('running'); setElapsed(0); setGenerationHumanize(humanize)
     setBusy(humanize ? '正在执行 Resume Builder → Humanizer-zh，可能需要一至两分钟' : '正在执行 Resume Builder'); setMessage('')
     try {
       const value = await result(await fetch(`${API_BASE}/api/resume-workflow/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jobId: Number(jobId), resume: source, humanize }) }))
       setVersions(prev => [value, ...prev]); selectVersion(value)
       setMessage('草稿已保存。请对照原简历核对事实，补齐占位符后确认。')
-    } catch (e) { setMessage((e as Error).message) } finally { setBusy('') }
+      setGeneration('done')
+    } catch (e) { setMessage((e as Error).message); setGeneration('error') } finally { setBusy('') }
   }
   const approve = async () => {
     if (!version) return
@@ -72,7 +84,15 @@ export default function ResumePage() {
       <input aria-label="上传原简历" type="file" accept=".pdf,.docx,.txt,.md" disabled={!!busy} onChange={e => { void upload(e.target.files?.[0]); e.target.value = '' }} />
       <Textarea aria-label="原简历正文" rows={12} value={source} onChange={e => setSource(e.target.value)} placeholder="姓名、工作经历、教育背景，以及你能确认的项目成果……" disabled={!!busy} />
       <label className="select-option"><input className="ui-checkbox" type="checkbox" checked={humanize} onChange={e => setHumanize(e.target.checked)} disabled={!!busy} />生成后运行 Humanizer-zh，保留事实并优化表达</label>
-      <Button onClick={generate} disabled={!!busy || !job?.jobDescription || source.trim().length < 20}>生成岗位专属简历</Button>
+      <Button onClick={generate} disabled={!!busy || !job?.jobDescription || source.trim().length < 20}>{generation === 'running' ? '正在生成简历…' : '生成岗位专属简历'}</Button>
+      {generation !== 'idle' && <div className="resume-generation-progress" aria-busy={generation === 'running'}>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span role="status">{generation === 'running' ? '正在处理，请稍候' : generation === 'done' ? '生成完成，草稿已保存' : '生成未完成，请查看下方错误信息后重试'}</span>
+          <span className="text-muted-foreground tabular-nums">{generation === 'running' ? '已等待' : '用时'} {elapsed} 秒</span>
+        </div>
+        {generation !== 'error' && <progress className="resume-generation-bar" aria-label="简历生成进度" max={1} value={generation === 'done' ? 1 : undefined} />}
+        <p className="text-xs text-muted-foreground leading-6">本次流程：Resume Builder 生成草稿{generationHumanize ? ' → Humanizer-zh 优化表达' : ''} → 保存版本。{generation === 'running' && '模型未提供实时百分比，请保持页面打开。'}</p>
+      </div>}
     </CardContent></Card>
     <p role="status" className="text-sm whitespace-pre-wrap">{busy || message}</p>
     {!!versions.length && <Card><CardHeader><CardTitle>3. 核对版本</CardTitle><CardDescription>Builder 原稿会保留。确认后冻结版本，修改时请重新生成。</CardDescription></CardHeader><CardContent className="space-y-4">
