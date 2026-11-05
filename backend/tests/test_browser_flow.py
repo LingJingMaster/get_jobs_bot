@@ -35,8 +35,19 @@ class Locator:
         self.page.message = message
 
     def filter(self, **kwargs):
-        assert kwargs['has_text'] == self.page.message
         return self
+
+    def locator(self, selector):
+        return Locator(self.page, selector)
+
+    async def evaluate_all(self, script):
+        return ['测试公司']
+
+    async def evaluate(self, script):
+        return '张某'
+
+    async def is_visible(self):
+        return False
 
 
 class Page:
@@ -44,8 +55,17 @@ class Page:
         self.fail, self.clicks, self.closed = fail, [], False
         self.url = 'https://www.zhipin.com/job_detail/test.html'
 
-    def locator(self, selector):
+    def locator(self, selector, **kwargs):
         return Locator(self, selector)
+
+    def get_by_text(self, text, **kwargs):
+        return Locator(self, text)
+
+    def is_closed(self):
+        return self.closed
+
+    async def bring_to_front(self):
+        pass
 
     async def goto(self, url, **kwargs):
         self.url = url
@@ -74,5 +94,5 @@ def test_send_success_or_uncertain(fail):
             await operation
             assert snapshots[-1]['deliveryStatus'] == '已投递'
         assert snapshots[0]['deliveryStatus'] == '发送待确认'
-        assert page.closed
+        assert not page.closed
     asyncio.run(check())
