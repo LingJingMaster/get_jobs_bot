@@ -33,7 +33,8 @@ def test_workflow_versions_and_delivery_guards(tmp_path, monkeypatch):
             assert len((await client.get('/api/resume-workflow')).json()['items']) == 1
             # Conversion is separately integration-tested; never use the real profile or send.
             image = BytesIO(); Image.new('RGB', (10, 10)).save(image, 'PNG')
-            monkeypatch.setattr('backend.app.resume.render_resume', lambda *args: image.getvalue())
+            async def fake_image(*args): return image.getvalue()
+            monkeypatch.setattr('backend.app.resume_image.render_text_image', fake_image)
             approved = await client.post(prefix + '/approve', json={'resume': record['resume']})
             assert approved.status_code == 200
             assert approved.json()['status'] == 'approved'

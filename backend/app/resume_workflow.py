@@ -212,12 +212,12 @@ class ApproveRequest(BaseModel):
 
 @router.post('/{version}/approve')
 async def approve(version: str, request: ApproveRequest):
-    from .resume import render_resume
+    from .resume_image import render_text_image
     record = load(version)
     if record['status'] != 'draft':
         raise HTTPException(409, '此版本已确认；请生成新版本后修改')
     try:
-        image = await asyncio.to_thread(render_resume, docx_bytes(request.resume), 'resume.docx')
+        image = await render_text_image(request.resume)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     folder = runtime().UPLOAD_DIR / 'versions'
@@ -235,7 +235,7 @@ def version_image(version: str):
     if not path.is_file():
         raise HTTPException(404, '请先确认版本，生成投递图片')
     from fastapi.responses import FileResponse
-    return FileResponse(path, media_type='image/png')
+    return FileResponse(path, media_type='image/png', headers={'Cache-Control': 'no-store'})
 
 
 class SendRequest(BaseModel):
