@@ -187,7 +187,7 @@ function ChartCanvas({
   return <canvas ref={canvasRef} className="w-full h-64" />
 }
 
-export default function AnalysisContent({ showHeader = false }: { showHeader?: boolean }) {
+export default function AnalysisContent({ showHeader = false, view = "collection" }: { showHeader?: boolean; view?: "collection" | "delivery" }) {
   const [stats, setStats] = useState<StatsResponse | null>(null)
   const [loadingStats, setLoadingStats] = useState(true)
 
@@ -478,6 +478,108 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
     ]
   }, [stats])
 
+  const charts = (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {view !== "delivery" && <>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><BiPieChart /> 投递状态分布</CardTitle>
+            <CardDescription>已投递/未投递/已过滤/失败等占比</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <ChartCanvas
+                type="pie"
+                labels={stats.charts.byStatus.map((x) => x.name)}
+                data={stats.charts.byStatus.map((x) => x.value)}
+              />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">
+                加载中...
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 行业TOP10</CardTitle>
+            <CardDescription>岗位按行业聚合</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <ChartCanvas
+                type="bar"
+                labels={stats.charts.byIndustry.map((x) => x.name)}
+                data={stats.charts.byIndustry.map((x) => x.value)}
+                colors={CATEGORY_COLORS}
+              />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 公司岗位数TOP10</CardTitle>
+            <CardDescription>按公司名称聚合</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <ChartCanvas type="bar" labels={stats.charts.byCompany.map((x) => x.name)} data={stats.charts.byCompany.map((x) => x.value)} colors={CATEGORY_COLORS} />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 经验分布</CardTitle>
+            <CardDescription>不同经验要求的岗位数</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <ChartCanvas type="bar" labels={stats.charts.byExperience.map((x) => x.name)} data={stats.charts.byExperience.map((x) => x.value)} colors={CATEGORY_COLORS} />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
+            )}
+          </CardContent>
+        </Card>
+
+        </>}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 学历分布</CardTitle>
+            <CardDescription>不同学历要求的岗位数</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <ChartCanvas type="bar" labels={stats.charts.byDegree.map((x) => x.name)} data={stats.charts.byDegree.map((x) => x.value)} colors={CATEGORY_COLORS} />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><BiLineChart /> 薪资区间分布</CardTitle>
+            <CardDescription>基于中位数K的桶聚合</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <ChartCanvas type="line" labels={stats.charts.salaryBuckets.map((x) => x.bucket)} data={stats.charts.salaryBuckets.map((x) => x.value)} color="#ef4444" />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+  )
+
   return (
     <div className="space-y-8">
       {showHeader && (
@@ -590,103 +692,7 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
         </CardContent>
       </Card>
 
-      {/* 图表区：6个图表（已移除每日趋势与HR活跃度） */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><BiPieChart /> 投递状态分布</CardTitle>
-            <CardDescription>已投递/未投递/已过滤/失败等占比</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats ? (
-              <ChartCanvas
-                type="pie"
-                labels={stats.charts.byStatus.map((x) => x.name)}
-                data={stats.charts.byStatus.map((x) => x.value)}
-              />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">
-                加载中...
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 行业TOP10</CardTitle>
-            <CardDescription>岗位按行业聚合</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats ? (
-              <ChartCanvas
-                type="bar"
-                labels={stats.charts.byIndustry.map((x) => x.name)}
-                data={stats.charts.byIndustry.map((x) => x.value)}
-                colors={CATEGORY_COLORS}
-              />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 公司岗位数TOP10</CardTitle>
-            <CardDescription>按公司名称聚合</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats ? (
-              <ChartCanvas type="bar" labels={stats.charts.byCompany.map((x) => x.name)} data={stats.charts.byCompany.map((x) => x.value)} colors={CATEGORY_COLORS} />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 经验分布</CardTitle>
-            <CardDescription>不同经验要求的岗位数</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats ? (
-              <ChartCanvas type="bar" labels={stats.charts.byExperience.map((x) => x.name)} data={stats.charts.byExperience.map((x) => x.value)} colors={CATEGORY_COLORS} />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><BiBarChart /> 学历分布</CardTitle>
-            <CardDescription>不同学历要求的岗位数</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats ? (
-              <ChartCanvas type="bar" labels={stats.charts.byDegree.map((x) => x.name)} data={stats.charts.byDegree.map((x) => x.value)} colors={CATEGORY_COLORS} />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><BiLineChart /> 薪资区间分布</CardTitle>
-            <CardDescription>基于中位数K的桶聚合</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats ? (
-              <ChartCanvas type="line" labels={stats.charts.salaryBuckets.map((x) => x.bucket)} data={stats.charts.salaryBuckets.map((x) => x.value)} color="#ef4444" />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed rounded-lg text-muted-foreground">加载中...</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {view !== "delivery" && charts}
 
       {/* 列表 */}
       <Card>
@@ -848,6 +854,8 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
           </div>
       </CardContent>
       </Card>
+
+      {view === "delivery" && charts}
 
       {/* 查看全文弹框 */}
       {showTextDialog && (

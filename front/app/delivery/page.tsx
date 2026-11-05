@@ -53,7 +53,7 @@ export default function DeliveryPage() {
       <Button disabled={busy || status.running || !status.isLoggedIn || status.challenge || !version || !previewed || !greeting.trim()} onClick={send}>投递该岗位并打招呼</Button>
     </CardContent></Card>
       </div>
-      <section className="delivery-history" aria-label="投递记录与结果"><h2 className="mb-4 text-xl font-semibold">投递记录与结果</h2><AnalysisContent showHeader={false} /></section>
+      <section className="delivery-history" aria-label="投递记录与结果"><h2 className="mb-4 text-xl font-semibold">投递记录与结果</h2><AnalysisContent showHeader={false} view="delivery" /></section>
     </div>
   </div>
 }
