@@ -595,23 +595,21 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
     try {
       const response = await fetch(`${API_BASE}/api/boss/collect`, { method: 'POST' })
       const data = await response.json()
+      setTaskMessage(data.message || data.detail || (response.ok ? '岗位采集已启动' : '采集请求失败'))
       setIsDelivering(Boolean(data.running))
-      setSaveResult({ success: response.ok, title: '岗位采集', message: data.message || data.detail || '采集请求失败' })
     } catch {
-      setSaveResult({ success: false, title: '岗位采集', message: '无法连接后端服务' })
+      setTaskMessage('无法连接后端服务，采集未启动')
     }
-    setShowSaveDialog(true)
   }
 
   const handleOpenBrowser = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/boss/browser`, { method: 'POST' })
       const data = await response.json()
-      setSaveResult({ success: response.ok, title: 'Boss 浏览器', message: data.message || data.detail || '浏览器操作失败' })
+      setTaskMessage(data.message || data.detail || (response.ok ? '浏览器已打开' : '浏览器操作失败'))
     } catch {
-      setSaveResult({ success: false, title: 'Boss 浏览器', message: '无法连接后端服务' })
+      setTaskMessage('无法连接后端服务，浏览器未打开')
     }
-    setShowSaveDialog(true)
   }
 
   const handleStartDelivery = async () => {
