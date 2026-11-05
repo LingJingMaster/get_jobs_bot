@@ -103,6 +103,15 @@ button, input, textarea, select { font: inherit; }
 @media (max-width: 900px) {
   .resume-workflow-note { align-items: flex-start; flex-direction: column; }
   .resume-workflow-note-skills { flex-wrap: wrap; white-space: normal; } .desk-sidebar { position: static; width: 100%; min-height: auto; padding: 16px 20px; display: block; }.sidebar-brand { padding-bottom: 16px; }.sidebar-nav { display: flex; gap: 4px; overflow-x: auto; }.nav-label, .tools-label, .sidebar-footer { display: none; }.nav-item { white-space: nowrap; }.desk-content { margin-left: 0; }.desk-content-inner { width: 100%; padding: 28px 16px 64px; }.page-header-unified { flex-wrap: wrap; }.page-header-actions { width: 100%; }.ui-card-header { padding: 18px 16px; }.ui-card-content { padding: 0 16px 20px; }.desk-header { display: block; }.quiet-action { margin-top: 18px; width: fit-content; }.step-strip { grid-template-columns: 1fr; }.step-cell { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }.step-cell:last-child { border-bottom: 0; }.desk-grid { grid-template-columns: 1fr; gap: 28px; } }
+.resume-document { background: #fff; color: #333; border: 1px solid var(--line); padding: clamp(20px, 4vw, 48px); line-height: 1.7; font-size: 14px; overflow-wrap: anywhere; }
+.resume-document h1 { font-size: 28px; font-weight: 700; margin: 0 0 16px; }
+.resume-document h2 { font-size: 19px; font-weight: 700; margin: 24px 0 10px; border-bottom: 1px solid #d6dede; padding-bottom: 6px; }
+.resume-document h3 { font-size: 15px; font-weight: 600; margin: 18px 0 8px; }
+.resume-document p { margin: 8px 0; }
+.resume-document ul, .resume-document ol { padding-left: 24px; margin: 10px 0; }
+.resume-document ul { list-style: disc; }.resume-document ol { list-style: decimal; }
+.resume-document li { margin: 5px 0; }.resume-document table { border-collapse: collapse; width: 100%; }.resume-document td, .resume-document th { border: 1px solid #ddd; padding: 6px; }
+.resume-notes { background: var(--panel); color: var(--ink); margin-top: 12px; padding: 20px; }
 .resume-generation-progress { padding: 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
 .resume-generation-bar { display: block; appearance: none; width: 100%; height: 6px; margin: 12px 0; border: 0; border-radius: 3px; overflow: hidden; background: var(--accent-soft); accent-color: var(--accent); }
 .resume-generation-bar::-webkit-progress-bar { background: var(--accent-soft); }

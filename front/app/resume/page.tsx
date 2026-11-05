@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { FilePenLine } from 'lucide-react'
 import PageHeader from '@/app/components/PageHeader'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -100,8 +102,9 @@ export default function ResumePage() {
       {version && <>
         <p className="text-sm">处理流程：Resume Builder{version.humanized ? ' → Humanizer-zh' : ''}</p>
         <details><summary className="cursor-pointer">原简历与 Builder 原稿</summary><div className="grid lg:grid-cols-2 gap-4 mt-3"><pre className="whitespace-pre-wrap text-sm">{version.original}</pre><pre className="whitespace-pre-wrap text-sm">{version.builder}</pre></div></details>
-        <Textarea aria-label="新版简历正文" rows={18} value={edited} readOnly={version.status === 'approved'} disabled={!!busy} onChange={e => { setEdited(e.target.value); setConfirmed(false) }} />
-        <details open><summary>优化说明与待补充信息</summary><p className="whitespace-pre-wrap text-sm mt-3">{version.notes}</p></details>
+        <article className="resume-document" aria-label="简历排版预览"><ReactMarkdown remarkPlugins={[remarkGfm]}>{edited}</ReactMarkdown></article>
+        {version.status === "draft" && <details><summary className="cursor-pointer">编辑简历正文（Markdown）</summary><Textarea aria-label="新版简历正文" className="mt-3" rows={18} value={edited} disabled={!!busy} onChange={e => { setEdited(e.target.value); setConfirmed(false) }} /></details>}
+        <details open><summary>优化说明与待补充信息</summary><div className="resume-document resume-notes"><ReactMarkdown remarkPlugins={[remarkGfm]}>{version.notes}</ReactMarkdown></div></details>
         <div className="flex flex-wrap gap-4"><a className="text-link" href={`${API_BASE}/api/resume-workflow/${version.id}/download/html`}>下载已保存 HTML</a><a className="text-link" href={`${API_BASE}/api/resume-workflow/${version.id}/download/docx`}>下载已保存 Word</a></div>
         {version.status === 'draft' ? <><label className="select-option"><input type="checkbox" className="ui-checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />已核对经历、日期、数字和联系方式，并补齐占位符</label><Button onClick={approve} disabled={!confirmed || !!busy}>确认并生成投递图片</Button><p className="text-xs text-muted-foreground">此处编辑在确认时保存；下载按钮导出当前已保存版本。</p></> : <Link className="text-link" href="/delivery">前往投递与沟通</Link>}
       </>}

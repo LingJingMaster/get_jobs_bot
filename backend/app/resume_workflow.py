@@ -158,8 +158,6 @@ def docx_bytes(text):
     section.page_width, section.page_height = Mm(210), Mm(297)
     section.top_margin = section.bottom_margin = Mm(16)
     section.left_margin = section.right_margin = Mm(18)
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
     doc.styles['Normal'].font.name = 'Microsoft YaHei'
     doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), 'Microsoft YaHei')
@@ -184,7 +182,10 @@ def docx_bytes(text):
         for i, segment in enumerate(re.split(r'(\*\*.+?\*\*)', content)):
             bold = segment.startswith('**') and segment.endswith('**')
             run = paragraph.add_run(segment[2:-2] if bold else segment)
-            run.bold = bold; run.font.name = 'Microsoft YaHei'; run._element.rPr.rFonts.set(qn('w:eastAsia'), 'Microsoft YaHei'); run.font.size = Pt(10)
+            run.bold = bool(heading) or bold
+            run.font.name = 'Arial'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), 'PingFang SC')
+            run.font.size = Pt({1: 20, 2: 13, 3: 11}.get(len(heading[1]) if heading else 0, 10.5))
 
     out = BytesIO()
     doc.save(out)
