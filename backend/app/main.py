@@ -28,6 +28,8 @@ async def lifespan(app: FastAPI):
     await browser.close()
 
 app = FastAPI(title="Get Jobs API", version="3.0.0", description="Boss直聘自动投递服务", lifespan=lifespan)
+from .resume_workflow import router as resume_router
+app.include_router(resume_router)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"], allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type"])
 
 _worker = {"running": False, "message": "未启动", "updated_at": None}
@@ -340,7 +342,7 @@ def save_configs(values: dict[str, str]) -> dict[str, Any]:
         db.commit()
     return {"success": True, "updateCount": len(values)}
 
-async def run_delivery(saved, items, ai_config, settings):
+async def run_delivery(saved, items, ai_config, settings, resume_path=None):
     from .delivery import deliver
     from .jobs import save_job
     def save(job):
@@ -348,7 +350,7 @@ async def run_delivery(saved, items, ai_config, settings):
             save_job(db, job)
     try:
         await deliver(browser.context, items, saved["config"], saved["blacklist"], ai_config, settings,
-                      UPLOAD_DIR / "boss-resume.png", save, publish)
+                      resume_path or UPLOAD_DIR / "boss-resume.png", save, publish)
         publish("本次投递处理结束，请查看历史记录确认结果", False)
     except asyncio.CancelledError:
         publish("投递已停止，请检查发送待确认的记录", False)

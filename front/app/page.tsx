@@ -9,11 +9,9 @@ type Stats = { kpi?: { total?: number; delivered?: number; pending?: number; fil
 type Status = { message?: string; browserOpen?: boolean; isLoggedIn?: boolean; running?: boolean }
 
 const steps = [
-  { label: '档案与事实', detail: '确认你的经历、期望与限制', icon: FileText, href: '/boss' },
-  { label: '岗位', detail: '从 Boss 采集岗位', icon: Inbox, href: '/boss' },
-  { label: '匹配', detail: '按条件和黑名单筛选', icon: ListFilter, href: '/boss/analysis' },
-  { label: '材料', detail: '准备招呼与图片简历', icon: Sparkles, href: '/ai-config' },
-  { label: '投递', detail: '逐条确认后发送', icon: Send, href: '/boss' },
+  { label: '采集岗位 JD', detail: '浏览器采集职位描述与要求', icon: Inbox, href: '/boss' },
+  { label: '优化简历', detail: '原简历 + JD，Builder 后可选润色', icon: Sparkles, href: '/resume' },
+  { label: '投递与沟通', detail: '确认专属简历与招呼语后发送', icon: Send, href: '/delivery' },
 ]
 
 export default function Home() {
@@ -38,11 +36,9 @@ export default function Home() {
 
   const kpi = stats.kpi || {}
   const cards = [
-    { label: '档案与事实', value: kpi.total || 0, note: '已确认岗位记录', tone: 'done' },
-    { label: '岗位', value: kpi.total || 0, note: '其中 Boss 采集', tone: 'done' },
-    { label: '匹配', value: (kpi.total || 0) - (kpi.filtered || 0), note: '次排序记录', tone: 'done' },
-    { label: '材料', value: 0, note: '份已批准 · 草稿 0 份', tone: 'current' },
-    { label: '投递', value: kpi.delivered || 0, note: '个岗位已登记投递', tone: 'idle' },
+    { value: kpi.total || 0 },
+    { value: 'Builder → 润色' },
+    { value: kpi.delivered || 0 },
   ]
 
   return (
@@ -51,7 +47,7 @@ export default function Home() {
         <div>
           <p className="kicker">BOSS 直聘 · 本机工作台</p>
           <h1>工作台</h1>
-          <p className="lede">从确认事实到投递记录，每一步都在本机完成。简历里的每一句话，都能追到你确认过的一条事实。</p>
+          <p className="lede">先采集 JD，再为目标岗位生成简历，核对后投递。浏览器与文件在本机运行，简历优化调用你配置的 AI 服务。</p>
         </div>
         <Link className="quiet-action" href="/boss"><Settings2 size={16} /> 管理 Boss 配置</Link>
       </header>
@@ -59,12 +55,12 @@ export default function Home() {
       <section className="step-strip" aria-label="求职流程">
         {steps.map((step, index) => {
           const Icon = step.icon
-          const complete = index < 3 && (kpi.total || 0) > 0
-          const active = index === 3
+          const complete = index === 0 && (kpi.total || 0) > 0
+          const active = index === ((kpi.total || 0) > 0 ? 1 : 0)
           return <Link href={step.href} className={`step-cell ${active ? 'step-current' : ''}`} key={step.label}>
             <div className="step-top">第 {index + 1} 步 {complete && <Check size={13} />}</div>
             <div className="step-title"><Icon size={16} />{step.label}</div>
-            <strong>{cards[index].value}</strong>
+            <strong style={index === 1 ? { fontSize: 18 } : undefined}>{cards[index].value}</strong>
             <span>{step.detail}</span>
           </Link>
         })}
@@ -76,9 +72,9 @@ export default function Home() {
           <article className="next-card">
             <div className="next-icon"><CircleDot size={22} /></div>
             <div>
-              <h3>先打开浏览器，再采集岗位</h3>
-              <p>在 Boss 直聘中完成登录。确认搜索条件后，采集只会记录岗位，不会发送任何消息。</p>
-              <Link href="/boss" className="text-link">去 Boss 工作台 <ArrowRight size={15} /></Link>
+              <h3>{kpi.total ? "选择目标岗位，生成专属简历" : "先打开浏览器，再采集岗位"}</h3>
+              <p>{kpi.total ? "上传原简历，核对提取文字；Resume Builder 对齐 JD，Humanizer-zh 按需优化表达。" : "在 Boss 完成登录，保存搜索条件后采集 JD。采集不会发送消息。"}</p>
+              <Link href={kpi.total ? "/resume" : "/boss"} className="text-link">{kpi.total ? "去优化简历" : "去采集岗位"} <ArrowRight size={15} /></Link>
             </div>
           </article>
         </section>
