@@ -68,6 +68,10 @@ import { API_BASE } from "@/lib/api"
 // 通用分类颜色（用于柱状/饼状图每个分类不同颜色）
 const CATEGORY_COLORS = ["#185e60", "#55867d", "#9a8257", "#a65c50", "#607a89", "#758865", "#9d7478", "#587572", "#a78b6c", "#6c8096", "#8a9773", "#7a9d98", "#986f60", "#677479"]
 
+function displayUnknown(value?: string) {
+  return value === '未标注' ? '不限' : value || '-'
+}
+
 function ChartCanvas({
   type,
   labels,
@@ -153,7 +157,7 @@ function ChartCanvas({
         chartRef.current = new Chart(ctx, {
           type,
           data: {
-            labels,
+            labels: labels.map(displayUnknown),
             datasets: [dataset],
           },
           options: {
@@ -749,10 +753,10 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
                         <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.location || '-'} onClick={() => openTextDialog("地点", it.location)}>{it.location || '-'}</div>
                       </td>
                       <td className="px-4 py-3 text-sm leading-6 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700">
-                        <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.experience || '-'} onClick={() => openTextDialog("经验", it.experience)}>{it.experience || '-'}</div>
+                        <div className="truncate cursor-pointer hover:text-primary transition-colors" title={displayUnknown(it.experience)} onClick={() => openTextDialog("经验", displayUnknown(it.experience))}>{displayUnknown(it.experience)}</div>
                       </td>
                       <td className="px-4 py-3 text-sm leading-6 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700">
-                        <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.degree || '-'} onClick={() => openTextDialog("学历", it.degree)}>{it.degree || '-'}</div>
+                        <div className="truncate cursor-pointer hover:text-primary transition-colors" title={displayUnknown(it.degree)} onClick={() => openTextDialog("学历", displayUnknown(it.degree))}>{displayUnknown(it.degree)}</div>
                       </td>
                       <td className="px-4 py-3 text-sm leading-6 align-top border-r border-gray-200 dark:border-gray-700">
                         <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.hrName || '-'} onClick={() => openTextDialog("HR", it.hrName)}>{it.hrName || '-'}</div>
@@ -780,7 +784,7 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
                         <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.companyAddress || '-'} onClick={() => openTextDialog("公司地址", it.companyAddress)}>{it.companyAddress || '-'}</div>
                       </td>
                       <td className="px-4 py-3 text-sm leading-6 align-top border-r border-gray-200 dark:border-gray-700">
-                        <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.industry || '-'} onClick={() => openTextDialog("行业", it.industry)}>{it.industry || '-'}</div>
+                        <div className="truncate cursor-pointer hover:text-primary transition-colors" title={displayUnknown(it.industry)} onClick={() => openTextDialog("行业", displayUnknown(it.industry))}>{displayUnknown(it.industry)}</div>
                       </td>
                       <td className="px-4 py-3 text-sm leading-6 align-top border-r border-gray-200 dark:border-gray-700">
                         <div className="truncate cursor-pointer hover:text-primary transition-colors" title={it.companyScale || '-'} onClick={() => openTextDialog("公司规模", it.companyScale)}>{it.companyScale || '-'}</div>

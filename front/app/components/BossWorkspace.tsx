@@ -112,6 +112,8 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
   const [loading, setLoading] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isDelivering, setIsDelivering] = useState(false)
+  const [startingCollection, setStartingCollection] = useState(false)
+  const collectionRequest = useRef(false)
   const [taskMessage, setTaskMessage] = useState('未启动')
   const [checkingLogin, setCheckingLogin] = useState(true)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
@@ -418,7 +420,7 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
     return `[${list.join(',')}]`
   }
 
-  const handleSave = async (silent: boolean = false, overrides?: Partial<BossConfig>) => {
+  const handleSave = async (silent: boolean = false, overrides?: Partial<BossConfig>): Promise<boolean> => {
     try {
       // 组装要保存的负载：多选使用括号列表
       const payload: BossConfig = {
@@ -443,11 +445,12 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
       })
 
       if (response.ok) {
-        fetchAllData()
+        if (!silent) void fetchAllData()
         if (!silent) {
           setSaveResult({ success: true, message: '配置保存成功。登录态由本机浏览器单独保存。' })
           setShowSaveDialog(true)
         }
+        return true
       } else {
         // 保存失败：不弹框，记录日志
         console.warn('保存失败：后端返回非 2xx 状态')
@@ -455,6 +458,7 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
           setSaveResult({ success: false, message: '保存失败：后端返回异常状态。' })
           setShowSaveDialog(true)
         }
+        return false
       }
     } catch (error) {
       console.error('Failed to save config:', error)
@@ -463,6 +467,7 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
         setSaveResult({ success: false, message: '保存失败：网络或服务异常。' })
         setShowSaveDialog(true)
       }
+      return false
     }
   }
 
@@ -592,13 +597,24 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
   }, [])
 
   const handleCollect = async () => {
+    if (collectionRequest.current) return
+    collectionRequest.current = true
+    setStartingCollection(true)
     try {
+      const saved = await handleSave(true)
+      if (!saved) {
+        setTaskMessage('配置保存失败，未启动采集')
+        return
+      }
       const response = await fetch(`${API_BASE}/api/boss/collect`, { method: 'POST' })
       const data = await response.json()
       setTaskMessage(data.message || data.detail || (response.ok ? '岗位采集已启动' : '采集请求失败'))
       setIsDelivering(Boolean(data.running))
     } catch {
       setTaskMessage('无法连接后端服务，采集未启动')
+    } finally {
+      collectionRequest.current = false
+      setStartingCollection(false)
     }
   }
 
@@ -715,7 +731,7 @@ export default function BossWorkspace({ mode = 'collect' }: { mode?: 'collect' |
                 <BiStop className="mr-1" /> 停止任务
               </Button>
             ) : null}
-            {mode === "collect" && <Button onClick={handleCollect} disabled={!isLoggedIn || isDelivering} size="sm">采集岗位（不发送消息）</Button>}
+            {mode === "collect" && <Button onClick={handleCollect} disabled={!isLoggedIn || isDelivering || startingCollection} size="sm">{startingCollection ? "正在保存并启动…" : "采集岗位（不发送消息）"}</Button>}
             <Button onClick={() => setShowLogoutDialog(true)} size="sm" className="rounded-full      bg-primary text-primary-foreground px-4   transition-all duration-300 ">
               <BiLogOut className="mr-1" /> 退出登录
             </Button>
