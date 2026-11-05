@@ -13,6 +13,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from .ai import generate, AIError
+from .markdown import to_html
 
 router = APIRouter(prefix='/api/resume-workflow')
 SKILLS = Path(__file__).resolve().parents[1] / 'skills'
@@ -157,16 +158,34 @@ def docx_bytes(text):
     section.page_width, section.page_height = Mm(210), Mm(297)
     section.top_margin = section.bottom_margin = Mm(16)
     section.left_margin = section.right_margin = Mm(18)
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
     doc.styles['Normal'].font.name = 'Microsoft YaHei'
-    doc.styles['Normal'].font.size = Pt(10.5)
+    doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), 'Microsoft YaHei')
+    doc.styles['Normal'].font.size = Pt(10)
+    for style_name, size, bold in [('Title', 20, True), ('Heading 1', 14, True), ('Heading 2', 11.5, True), ('Heading 3', 10.5, True)]:
+        style = doc.styles[style_name]
+        style.font.name = 'Microsoft YaHei'; style._element.rPr.rFonts.set(qn('w:eastAsia'), 'Microsoft YaHei')
+        style.font.size = Pt(size); style.font.bold = bold
+        style.paragraph_format.space_before = Pt(9); style.paragraph_format.space_after = Pt(3)
     for line in text.splitlines():
-        if not line.strip():
-            continue
+        if not line.strip(): continue
         heading = re.match(r'^(#{1,3})\s+(.*)', line)
-        paragraph = doc.add_heading('', level=len(heading[1])) if heading else doc.add_paragraph(style='List Bullet' if re.match(r'^[-*] ', line) else None)
-        line = heading[2] if heading else re.sub(r'^[-*] ', '', line)
-        for i, segment in enumerate(line.split('**')):
-            paragraph.add_run(segment).bold = bool(i % 2)
+        if heading:
+            paragraph = doc.add_paragraph(style=f'Heading {len(heading[1])}')
+            content = heading[2]
+        else:
+            bullet = re.sub(r'^[-*]\s+', '', line)
+            paragraph = doc.add_paragraph(style='List Bullet' if bullet != line else 'Normal')
+            content = bullet
+        paragraph.paragraph_format.line_spacing = 1.08
+        paragraph.paragraph_format.space_after = Pt(3)
+        for i, segment in enumerate(re.split(r'(\*\*.+?\*\*)', content)):
+            bold = segment.startswith('**') and segment.endswith('**')
+            run = paragraph.add_run(segment[2:-2] if bold else segment)
+            run.bold = bold; run.font.name = 'Microsoft YaHei'; run._element.rPr.rFonts.set(qn('w:eastAsia'), 'Microsoft YaHei'); run.font.size = Pt(10)
+
     out = BytesIO()
     doc.save(out)
     return out.getvalue()
@@ -179,7 +198,7 @@ def download(version: str, format: str):
         data = docx_bytes(record['resume'])
         media = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     elif format == 'html':
-        data = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>简历</title><style>body{font:15px/1.65 Arial,"Microsoft YaHei",sans-serif;color:#333;max-width:780px;margin:36px auto;padding:24px}pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}@page{size:A4;margin:16mm}@media print{body{margin:0;padding:0}}</style><pre>' + escape(record['resume']) + '</pre></html>'
+        data = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>简历</title><style>body{font:10.5pt/1.65 Arial,"Microsoft YaHei",sans-serif;color:#333;max-width:780px;margin:36px auto;padding:24px}h1{font-size:20pt;margin:0 0 12pt;border-bottom:2px solid #185e60;padding-bottom:6pt}h2{font-size:14pt;margin:14pt 0 5pt;color:#185e60}h3{font-size:11.5pt;margin:10pt 0 4pt}p{margin:0 0 5pt}ul{margin:3pt 0 7pt;padding-left:20pt}li{margin:2pt 0}@page{size:A4;margin:16mm}@media print{body{margin:0;padding:0}}</style><main>' + to_html(record['resume']) + '</main></html>'
         media = 'text/html'
     else:
         raise HTTPException(404, '不支持的格式')

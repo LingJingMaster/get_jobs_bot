@@ -1,6 +1,7 @@
 """OpenAI-compatible text generation. Never include API credentials in errors."""
 from urllib.parse import urlsplit
 import httpx
+from httpx import TimeoutException
 
 
 class AIError(Exception):
@@ -20,7 +21,8 @@ async def generate(content: str, settings: dict[str, str], transport=None) -> st
         raise AIError("请先配置 API_KEY 和 MODEL")
     endpoint = base + ("/chat/completions" if base.endswith("/v1") else "/v1/chat/completions")
     try:
-        async with httpx.AsyncClient(timeout=45, transport=transport, follow_redirects=False) as client:
+        timeout = httpx.Timeout(connect=15, read=180, write=30, pool=15)
+        async with httpx.AsyncClient(timeout=timeout, transport=transport, follow_redirects=False) as client:
             response = await client.post(endpoint, headers={"Authorization": f"Bearer {key}"}, json={
                 "model": model, "messages": [{"role": "user", "content": content}],
             })
@@ -29,5 +31,7 @@ async def generate(content: str, settings: dict[str, str], transport=None) -> st
             if not isinstance(reply, str) or not reply.strip():
                 raise ValueError("empty reply")
             return reply.strip()
+    except TimeoutException as exc:
+        raise AIError("AI 请求超时（最长等待 3 分钟），请检查 API 地址、模型是否支持长文本，或稍后重试；未创建简历版本") from exc
     except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as exc:
         raise AIError("AI 请求失败，请检查服务地址、模型及密钥；未发送任何招聘消息") from exc
