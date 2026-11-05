@@ -105,13 +105,11 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
             ref={buttonRef}
             id={id as string}
             type="button"
+            aria-expanded={open}
             disabled={disabled}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => { if (!open) updatePosition(); setOpen((v) => !v) }}
             className={cn(
-              "flex h-10 w-full rounded-full px-4 py-2 text-sm pr-8",
-              "border border-white/40 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,.25)]",
-              "transition-all duration-200 hover:bg-white/10 hover:shadow-md",
-              disabled ? "cursor-not-allowed opacity-50" : "focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-300/60",
+              "ui-field flex h-10 w-full px-3 py-2 text-sm pr-8 disabled:opacity-50",
               // 自定义箭头（浅灰）
               "bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23a1a1aa\" stroke-width=\"2\"><path d=\"M6 9l6 6 6-6\"/></svg>')] bg-no-repeat bg-[length:16px_16px] bg-[position:right_12px_center]",
               className
@@ -130,23 +128,25 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
                 width: `${dropdownPosition.width}px`,
               }}
             >
-              <ul className="py-1">
+              <ul className="p-2">
                 {options.map((o) => {
                   const active = String(value ?? '') === String(o.value)
                   return (
                     <li
                       key={String(o.value)}
                       className={cn(
-                        "group flex items-center justify-between gap-3 px-3 py-2 cursor-pointer transition-all border-b border-white/12 last:border-b-0",
-                        active ? "bg-gradient-to-r from-emerald-500/12 to-cyan-500/12" : "hover:bg-white/12"
+                        "select-option", active ? "is-selected" : ""
                       )}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); emitChange(String(o.value)); setOpen(false) } }}
                       onClick={() => {
                         emitChange(String(o.value))
                         setOpen(false)
                       }}
                     >
                       <span className="flex items-center gap-3">
-                        <span className={cn("inline-flex h-4 w-4 items-center justify-center rounded-md border border-white/30 bg-white/10 shadow-inner transition-all", active && "bg-emerald-400/60 border-emerald-300/80")}></span>
+                        <span aria-hidden="true" className="option-mark">{active ? "✓" : ""}</span>
                         <span className="text-sm truncate">{o.label}</span>
                       </span>
                     </li>

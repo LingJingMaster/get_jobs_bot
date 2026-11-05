@@ -66,29 +66,14 @@ type PagedResult = {
 
 import { API_BASE } from "@/lib/api"
 // 通用分类颜色（用于柱状/饼状图每个分类不同颜色）
-const CATEGORY_COLORS = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#6366f1",
-  "#22c55e",
-  "#fb7185",
-  "#a78bfa",
-  "#f97316",
-  "#06b6d4",
-  "#4ade80",
-  "#2dd4bf",
-  "#f472b6",
-  "#64748b",
-]
+const CATEGORY_COLORS = ["#185e60", "#55867d", "#9a8257", "#a65c50", "#607a89", "#758865", "#9d7478", "#587572", "#a78b6c", "#6c8096", "#8a9773", "#7a9d98", "#986f60", "#677479"]
 
 function ChartCanvas({
   type,
   labels,
   data,
   title,
-  color = "#3b82f6",
+  color = "#185e60",
   colors,
 }: {
   type: "pie" | "bar" | "line"
@@ -103,23 +88,8 @@ function ChartCanvas({
   // 颜色统一使用纯色（不透明）
   const toSolid = (hex: string) => hex
 
-  async function ensureChart(): Promise<any> {
-    if (typeof window !== "undefined" && (window as any).Chart) return (window as any).Chart
-    return new Promise((resolve, reject) => {
-      const existing = document.querySelector("script[data-chartjs-cdn='true']") as HTMLScriptElement | null
-      if (existing) {
-        existing.addEventListener("load", () => resolve((window as any).Chart))
-        existing.addEventListener("error", () => reject(new Error("Chart.js CDN load error")))
-        return
-      }
-      const script = document.createElement("script")
-      script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
-      script.async = true
-      script.setAttribute("data-chartjs-cdn", "true")
-      script.addEventListener("load", () => resolve((window as any).Chart))
-      script.addEventListener("error", () => reject(new Error("Chart.js CDN load error")))
-      document.head.appendChild(script)
-    })
+  async function ensureChart() {
+    return (await import("chart.js/auto")).default
   }
 
   useEffect(() => {
@@ -134,18 +104,7 @@ function ChartCanvas({
 
     let cancelled = false
 
-    const pieColorsBase = [
-      "#3b82f6",
-      "#10b981",
-      "#f59e0b",
-      "#ef4444",
-      "#6366f1",
-      "#22c55e",
-      "#fb7185",
-      "#a78bfa",
-      "#f97316",
-      "#06b6d4",
-    ]
+    const pieColorsBase = CATEGORY_COLORS
 
     const backgroundColor = (() => {
       if (type === "pie") {
@@ -157,7 +116,7 @@ function ChartCanvas({
         return colors.slice(0, data.length).map((c) => toSolid(c))
       }
       // 折线图/默认均使用纯色
-      return toSolid(color ?? "#3b82f6")
+      return toSolid(color ?? "#185e60")
     })()
 
     const borderColor = (() => {
@@ -511,7 +470,7 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
       { title: "未投递", value: k?.pending ?? 0 },
       { title: "已过滤", value: k?.filtered ?? 0 },
       { title: "投递失败", value: k?.failed ?? 0 },
-      { title: "平均月薪(K)", value: k?.avgMonthlyK ?? 0 },
+      { title: "平均月薪(K)", value: k?.avgMonthlyK == null ? "—" : k.avgMonthlyK.toFixed(1) },
     ]
   }, [stats])
 
@@ -520,13 +479,13 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
       {showHeader && (
         <PageHeader
           title="Boss 投递分析"
-          subtitle="基于 boss_data 表的统计图与列表分析"
+          subtitle="查看已采集的岗位、投递进度与薪资分布"
           icon={<BiBarChart size={28} />}
         />
       )}
 
       {/* KPI 卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiCards.map((c, idx) => (
           <Card key={idx} className="border">
             <CardHeader>
@@ -545,15 +504,11 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
               <CardTitle className="text-base">筛选与操作</CardTitle>
               <CardDescription>按状态、地区、经验、学历与薪资区间过滤列表</CardDescription>
             </div>
-            <div className="flex flex-wrap gap-3 rounded-full px-3 py-2 border border-white/20 bg-white/5 backdrop-blur-md shadow-sm">
+            <div className="flex flex-wrap gap-2">
               {statusOptions.map((s) => (
                 <label
                   key={s}
-                  className={`group inline-flex items-center gap-2 text-sm rounded-full px-3 py-1.5 transition-all border backdrop-blur-sm ${
-                    statuses.includes(s)
-                      ? "border-cyan-300/60 bg-gradient-to-r from-cyan-500/15 to-violet-500/15 text-cyan-900 dark:text-cyan-200 shadow"
-                      : "border-white/20 bg-white/8 text-foreground/80 hover:bg-white/12"
-                  }`}
+                  className={`select-option text-sm ${statuses.includes(s) ? "is-selected" : ""}`}
                 >
                   <input
                     type="checkbox"
@@ -564,26 +519,20 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
                         return prev.filter((x) => x !== s)
                       })
                     }}
-                    className="sr-only peer"
+                    className="ui-checkbox"
                   />
-                  <span className="inline-flex h-4 w-4 items-center justify-center rounded-md border border-white/30 bg-white/10 shadow-inner transition-all peer-checked:bg-cyan-400/60 peer-checked:border-cyan-300/80"></span>
                   {s}
                 </label>
               ))}
               <label
-                className={`group inline-flex items-center gap-2 text-sm rounded-full px-3 py-1.5 transition-all border backdrop-blur-sm ${
-                  filterHeadhunter
-                    ? "border-teal-300/60 bg-gradient-to-r from-teal-500/15 to-emerald-500/15 text-teal-900 dark:text-teal-200 shadow"
-                    : "border-white/20 bg-white/8 text-foreground/80 hover:bg-white/12"
-                }`}
+                className={`select-option text-sm ${filterHeadhunter ? "is-selected" : ""}`}
               >
                 <input
                   type="checkbox"
                   checked={filterHeadhunter}
                   onChange={(e) => setFilterHeadhunter(e.target.checked)}
-                  className="sr-only peer"
+                  className="ui-checkbox"
                 />
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-md border border-white/30 bg-white/10 shadow-inner transition-all peer-checked:bg-teal-400/60 peer-checked:border-teal-300/80"></span>
                 过滤猎头岗位
               </label>
             </div>
@@ -617,7 +566,7 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
             </div>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             <Button
               onClick={async () => {
                 await loadList(1, size)
@@ -742,10 +691,10 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
           <CardDescription>支持筛选、导出与刷新</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-xl border border-stroke/30 dark:border-strokedark/30 shadow-lg">
+          <div className="overflow-x-auto rounded border border-border">
             <table className="w-full table-fixed min-w-[1200px] bg-white dark:bg-blacksection">
               <thead>
-                <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-b-2 border-blue-200 dark:border-blue-800">
+                <tr className="bg-secondary text-secondary-foreground border-b border-border">
                   <th className="w-40 px-4 py-3.5 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 border-r border-gray-200 dark:border-gray-700">公司名称</th>
                   <th className="w-48 px-4 py-3.5 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 border-r border-gray-200 dark:border-gray-700">岗位名称</th>
                   <th className="w-24 px-4 py-3.5 text-left text-sm font-semibold text-gray-700 dark:text-gray-200 border-r border-gray-200 dark:border-gray-700">薪资</th>
@@ -855,7 +804,7 @@ export default function AnalysisContent({ showHeader = false }: { showHeader?: b
             </table>
           </div>
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button variant="outline" onClick={() => loadList(Math.max(1, page - 1), size)} disabled={loadingList || page <= 1}>上一页</Button>
             <div className="text-sm">第 {page} 页 / 共 {Math.max(1, Math.ceil(total / size))} 页</div>
             <Button variant="outline" onClick={() => loadList(page + 1, size)} disabled={loadingList || page >= Math.ceil(total / size)}>下一页</Button>

@@ -714,21 +714,21 @@ export default function BossPage() {
                 <BiPlay className="mr-1" /> 打开浏览器登录
               </Button>
             ) : isDelivering ? (
-              <Button onClick={handleStopDelivery} size="sm" className="rounded-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <Button onClick={handleStopDelivery} size="sm" className="rounded-full      bg-primary text-primary-foreground px-4   transition-all duration-300 ">
                 <BiStop className="mr-1" /> 停止任务
               </Button>
             ) : (
-              <Button onClick={handleStartDelivery} size="sm" className="rounded-full bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white px-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <Button onClick={handleStartDelivery} size="sm" className="rounded-full      bg-primary text-primary-foreground px-4   transition-all duration-300 ">
                 <BiPlay className="mr-1" /> 开始投递
               </Button>
             )}
             <Button onClick={handleCollect} disabled={!isLoggedIn || isDelivering} size="sm">
               采集岗位（不发送消息）
             </Button>
-            <Button onClick={() => setShowLogoutDialog(true)} size="sm" className="rounded-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <Button onClick={() => setShowLogoutDialog(true)} size="sm" className="rounded-full      bg-primary text-primary-foreground px-4   transition-all duration-300 ">
               <BiLogOut className="mr-1" /> 退出登录
             </Button>
-            <Button onClick={() => handleSave(false)} size="sm" className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <Button onClick={() => handleSave(false)} size="sm" className="rounded-full      bg-primary text-primary-foreground px-4   transition-all duration-300 ">
               <BiSave className="mr-1" /> 保存配置
             </Button>
           </div>
@@ -1013,7 +1013,7 @@ export default function BossPage() {
                   onChange={setSelectedSalary}
                   placeholder="选择薪资待遇"
                 />
-                <p className="text-xs text-muted-foreground">选项来源：字典表 type=salary（可多选）</p>
+                <p className="text-xs text-muted-foreground">可选择多个薪资范围</p>
               </div>
               <div className="space-y-2">
                 <Label>工作经验</Label>
@@ -1476,8 +1476,9 @@ function MultiSelect({
       <button
         ref={buttonRef}
         type="button"
-        onClick={() => { const next = !open; setOpen(next); if (!next) onClose?.() }}
-        className="flex h-10 w-full items-center justify-between rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,.25)] transition-all duration-200 hover:bg-white/15 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-cyan-400/40 focus:ring-offset-0"
+        onClick={() => { const next = !open; if (next) updatePosition(); setOpen(next); if (!next) onClose?.() }}
+        aria-expanded={open}
+        className="ui-field flex h-10 w-full items-center justify-between px-3 py-2 text-sm"
       >
         <span className="truncate text-sm">
           {selectedNames.length > 0 ? selectedNames.join('，') : (placeholder || '请选择')}
@@ -1498,23 +1499,10 @@ function MultiSelect({
             {options.map((opt) => {
               const checked = selected.includes(opt.code)
               return (
-                <div
-                  key={opt.id}
-                  className={`group inline-flex items-center justify-between gap-3 rounded-full px-3 py-2 cursor-pointer transition-all border ${checked ? 'border-teal-300/60 bg-gradient-to-r from-teal-500/12 to-cyan-500/12 text-teal-900 dark:text-teal-200 shadow' : 'border-white/20 bg-white/8 text-foreground hover:bg-white/12'}`}
-                  onClick={(e) => {
-                    console.log('[MultiSelect] div 被点击', {
-                      optionCode: opt.code,
-                      optionName: opt.name,
-                      currentChecked: checked
-                    })
-                    toggle(opt.code)
-                  }}
-                >
-                  <span className="flex items-center gap-3">
-                    <span className={`inline-flex h-4 w-4 items-center justify-center rounded-md border border-white/30 bg-white/10 shadow-inner transition-all ${checked ? 'bg-teal-400/60 border-teal-300/80' : ''}`}></span>
-                    <span className="text-sm truncate">{opt.name}</span>
-                  </span>
-                </div>
+                <label key={opt.id} className={`select-option ${checked ? "is-selected" : ""}`}>
+                  <input type="checkbox" className="ui-checkbox" checked={checked} onChange={() => toggle(opt.code)} />
+                  <span>{opt.name}</span>
+                </label>
               )
             })}
           </div>

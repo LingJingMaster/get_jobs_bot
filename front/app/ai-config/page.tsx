@@ -139,7 +139,7 @@ export default function AiConfigPage() {
           <Button
             onClick={handleSave}
             size="sm"
-            className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            className="px-4"
             type="button"
             disabled={loading}
           >

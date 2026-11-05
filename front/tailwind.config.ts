@@ -44,7 +44,7 @@ const config: Config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT: "var(--accent-soft)",
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
@@ -63,7 +63,7 @@ const config: Config = {
         titlebg2: "var(--color-titlebg2)",
         titlebgdark: "var(--color-titlebgdark)",
         btndark: "var(--color-btndark)",
-        white: "var(--color-white)",
+        white: "#ffffff",
         black: "var(--color-black)",
         blackho: "var(--color-blackho)",
         blacksection: "var(--color-blacksection)",

@@ -121,7 +121,7 @@ export default function EnvConfig() {
           <Button
             onClick={() => handleSave(false)}
             size="sm"
-            className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            className="px-4"
           >
             <BiSave className="mr-1" /> 保存配置
           </Button>
@@ -286,7 +286,7 @@ export default function EnvConfig() {
                   <div className="flex justify-end gap-2">
                     <Button
                       onClick={() => setShowSaveDialog(false)}
-                      className={`rounded-full px-4 ${saveResult.success ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white' : 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white'}`}
+                      className={`rounded-full px-4 ${saveResult.success ? '     bg-primary text-primary-foreground' : '     text-white'}`}
                     >
                       知道了
                     </Button>

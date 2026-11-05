@@ -28,7 +28,7 @@ export default function RootLayout({
           defaultTheme="light"
           enableSystem={false}
         >
-          <div className="flex min-h-screen">
+          <div className="min-h-screen">
             <Sidebar />
             <ContentArea>
               {children}
