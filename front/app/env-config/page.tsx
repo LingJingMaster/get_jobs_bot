@@ -253,17 +253,13 @@ export default function EnvConfig() {
         </Card>
 
         {/* 安全提示 */}
-        <Card className="border-primary/20 bg-primary/5 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <BiInfoCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-foreground">
-                  <strong className="font-semibold">提示：</strong> 这些环境变量将保存到{' '}
-                  <code className="bg-primary/10 px-2 py-0.5 rounded text-primary font-mono text-xs">.env</code>{' '}
-                  文件中。请勿将包含敏感信息的 .env 文件提交到版本控制系统。
-                </p>
-              </div>
+        <Card className="settings-security-note">
+          <CardContent>
+            <div className="settings-security-message">
+              <BiInfoCircle aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" />
+              <p className="text-sm text-foreground">
+                <strong className="font-semibold">提示：</strong>配置与 API 密钥保存在本机数据库中。请勿将数据库文件提交到版本控制系统或分享给他人。
+              </p>
             </div>
           </CardContent>
         </Card>

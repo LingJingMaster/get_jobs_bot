@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Send } from 'lucide-react'
 import PageHeader from '@/app/components/PageHeader'
-import BossWorkspace from '@/app/components/BossWorkspace'
 import AnalysisContent from '@/app/boss/analysis/AnalysisContent'
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -40,7 +39,9 @@ export default function DeliveryPage() {
   }
   return <div className="space-y-6">
     <PageHeader icon={<Send />} title="投递与沟通" subtitle="选择已确认的岗位专属简历，预览图片与招呼语后发送" />
-    <Card><CardHeader><CardTitle>本次投递</CardTitle><CardDescription>一次只投递该版本对应的岗位。待确认的发送不会自动重试；持续跟进回复尚未接入。</CardDescription></CardHeader><CardContent className="space-y-4">
+    <div className="delivery-layout">
+      <div className="delivery-primary">
+        <Card><CardHeader><CardTitle>本次投递</CardTitle><CardDescription>一次只投递该版本对应的岗位。待确认的发送不会自动重试；持续跟进回复尚未接入。</CardDescription></CardHeader><CardContent className="space-y-4">
       <div className="flex gap-3 flex-wrap"><Button variant="outline" disabled={busy || status.running} onClick={() => action('/api/boss/browser')}>打开浏览器登录</Button><Button variant="outline" disabled={busy || !status.running} onClick={() => action('/api/boss/stop')}>停止任务</Button></div>
       <p role="status" className="text-sm">{message || status.message || '等待操作'} · {status.isLoggedIn ? 'Boss 已登录' : '未登录'}{status.challenge ? ' · 请完成安全验证' : ''}</p>
       <label htmlFor="approved-version" className="block">已确认简历</label>
@@ -51,7 +52,8 @@ export default function DeliveryPage() {
       <label className="select-option"><input type="checkbox" className="ui-checkbox" checked={previewed} onChange={e => setPreviewed(e.target.checked)} />已预览简历图片并核对招呼语</label>
       <Button disabled={busy || status.running || !status.isLoggedIn || status.challenge || !version || !previewed || !greeting.trim()} onClick={send}>投递该岗位并打招呼</Button>
     </CardContent></Card>
-    <details><summary className="cursor-pointer text-lg">投递记录与结果</summary><div className="mt-5"><AnalysisContent showHeader={false} /></div></details>
-    <details><summary className="cursor-pointer">通用材料与历史设置</summary><div className="mt-5"><BossWorkspace mode="delivery" /></div></details>
+      </div>
+      <section className="delivery-history" aria-label="投递记录与结果"><h2 className="mb-4 text-xl font-semibold">投递记录与结果</h2><AnalysisContent showHeader={false} /></section>
+    </div>
   </div>
 }
