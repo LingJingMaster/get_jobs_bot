@@ -5,7 +5,7 @@ from .markdown import to_html
 async def render_text_image(text: str) -> bytes:
     from patchright.async_api import async_playwright
     html = '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>
-    *{box-sizing:border-box}body{margin:0;background:white;color:#222;font:20px/1.65 Arial,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:white;color:#222;font:20px/1.65 "Source Han Sans CN","Noto Sans CJK SC","Hiragino Sans GB",sans-serif}
     main{width:1100px;padding:48px 64px}h1{font-size:36px;margin:0 0 18px}h2{font-size:25px;margin:26px 0 12px;border-bottom:1px solid #ccc;padding-bottom:6px}h3{font-size:21px;margin:20px 0 10px}
     p{margin:10px 0}ul{padding-left:26px;margin:10px 0}li{margin:6px 0}main{overflow-wrap:anywhere}
     </style><main>''' + to_html(text) + '</main></html>'
