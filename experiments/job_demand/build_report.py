@@ -10,11 +10,11 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, Cm, RGBColor
 
 
-def font(run, size=11, bold=None):
-    run.font.name='Source Han Sans CN'
-    run._element.get_or_add_rPr().rFonts.set(qn('w:eastAsia'),'Source Han Sans CN')
+def font(run, size=12, bold=None):
+    run.font.name='Times New Roman'
+    run._element.get_or_add_rPr().rFonts.set(qn('w:eastAsia'),'宋体')
     run.font.size=Pt(size)
-    run.font.color.rgb=RGBColor.from_string('222222')
+    run.font.color.rgb=RGBColor.from_string('000000')
     if bold is not None: run.bold=bold
 
 
@@ -50,7 +50,7 @@ def build(markdown, cover, output):
         for p in s.footer.paragraphs: p.clear()
     section=doc.add_section(WD_SECTION_START.NEW_PAGE)
     section.page_height=Cm(29.7);section.page_width=Cm(21)
-    section.top_margin=Cm(2.2);section.bottom_margin=Cm(2.0);section.left_margin=Cm(2.3);section.right_margin=Cm(2.3)
+    section.top_margin=Cm(2.8);section.bottom_margin=Cm(1.6);section.left_margin=Cm(3.4);section.right_margin=Cm(2.0)
     section.different_first_page_header_footer=False
     numbering=OxmlElement('w:pgNumType');numbering.set(qn('w:start'),'1');section._sectPr.append(numbering)
     section.header.is_linked_to_previous=False
@@ -59,11 +59,14 @@ def build(markdown, cover, output):
     hp=section.header.paragraphs[0];hp.alignment=WD_ALIGN_PARAGRAPH.CENTER;font(hp.add_run('机器学习课程期末报告 · 岗位需求分析'),9)
     p=section.footer.paragraphs[0];p.clear();p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     field=OxmlElement('w:fldSimple');field.set(qn('w:instr'),'PAGE');p._p.append(field)
-    normal=doc.styles['Normal'];normal.font.name='Source Han Sans CN';normal.font.size=Pt(10.5)
-    normal.paragraph_format.line_spacing=1.35;normal.paragraph_format.space_after=Pt(5)
-    for name,size in [('Heading 1',16),('Heading 2',13),('Heading 3',11.5)]:
-        st=doc.styles[name];st.font.name='Source Han Sans CN';st.font.size=Pt(size);st.font.color.rgb=RGBColor.from_string('163C45')
-        st.paragraph_format.space_before=Pt(12);st.paragraph_format.space_after=Pt(6)
+    normal=doc.styles['Normal'];normal.font.name='Times New Roman';normal.font.size=Pt(12)
+    normal.element.get_or_add_rPr().rFonts.set(qn('w:eastAsia'),'宋体')
+    normal.paragraph_format.line_spacing=1.5;normal.paragraph_format.space_after=Pt(0);normal.paragraph_format.space_before=Pt(0)
+    for name,size in [('Heading 1',14),('Heading 2',12),('Heading 3',12)]:
+        st=doc.styles[name];st.font.name='Times New Roman';st.font.size=Pt(size);st.font.color.rgb=RGBColor.from_string('000000')
+        st.element.get_or_add_rPr().rFonts.set(qn('w:eastAsia'),'宋体')
+        st.paragraph_format.line_spacing=1.5
+        st.paragraph_format.space_before=Pt(0);st.paragraph_format.space_after=Pt(0)
     lines=markdown.read_text().splitlines();i=1
     while i<len(lines):
         line=lines[i].strip();i+=1
@@ -82,30 +85,39 @@ def build(markdown, cover, output):
             for n,row in enumerate(table.rows):
                 for cell in row.cells:
                     for p in cell.paragraphs:
-                        p.paragraph_format.space_after=Pt(4)
+                        p.paragraph_format.space_after=Pt(0)
+                        p.paragraph_format.line_spacing=1.5
                         p.paragraph_format.keep_with_next=n<len(table.rows)-1
-                        for r in p.runs:font(r,9,n==0)
+                        for r in p.runs:font(r,10.5,n==0)
                 trPr=row._tr.get_or_add_trPr();no_split=OxmlElement('w:cantSplit');trPr.append(no_split)
             continue
         image=re.match(r'!\[(.*?)\]\((.*?)\)',line)
         if image:
             p=doc.add_paragraph();p.alignment=WD_ALIGN_PARAGRAPH.CENTER
-            p.add_run().add_picture(str(markdown.parent/image[2]),width=Cm(16))
+            p.add_run().add_picture(str(markdown.parent/image[2]),width=Cm(15.6))
             p.paragraph_format.keep_with_next=True
             cap=doc.add_paragraph(image[1]);cap.alignment=WD_ALIGN_PARAGRAPH.CENTER
-            for run in cap.runs:font(run,9)
+            for run in cap.runs:font(run,10.5)
             continue
         heading=re.match(r'^(#{2,4})\s+(.*)',line)
         if heading:
             level=len(heading[1])-1
             p=doc.add_heading(heading[2],level=level)
             if heading[2].startswith('附录'):p.paragraph_format.page_break_before=True
-            for run in p.runs:font(run,16 if level==1 else 13,True)
+            for run in p.runs:font(run,14 if level==1 else 12,True)
         else:
             p=doc.add_paragraph(line)
-            p.alignment=WD_ALIGN_PARAGRAPH.LEFT
+            p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
             p.paragraph_format.widow_control=True
-            for run in p.runs:font(run,10.5)
+            if not re.match(r'^(?:\[\d+\]|关键词|[A-D]\. )',line):
+                p.paragraph_format.first_line_indent=Pt(24)
+                p._p.get_or_add_pPr().get_or_add_ind().set(qn('w:firstLineChars'),'200')
+            for run in p.runs:font(run,12)
+    # Legacy cover has a document grid; do not let it inflate 1.5-line spacing.
+    for p in doc.paragraphs:
+        snap=OxmlElement('w:snapToGrid');snap.set(qn('w:val'),'0');p._p.get_or_add_pPr().append(snap)
+        if p.text.startswith(('[','A. ','B. ','C. ','D. ')):
+            p.alignment=WD_ALIGN_PARAGRAPH.LEFT
     doc.save(output)
 
 
@@ -121,6 +133,10 @@ def export_pdf(docx):
         config=ET.Element('fontconfig')
         for directory in ['/System/Library/Fonts',str(Path.home()/'Library/Fonts'),'/usr/share/fonts','/usr/local/share/fonts',str(Path.home()/'.local/share/fonts')]:
             if Path(directory).is_dir():ET.SubElement(config,'dir').text=directory
+        for requested,replacement in [('宋体','Source Han Serif CN'),('SimSun','Source Han Serif CN')]:
+            match=ET.SubElement(config,'match',target='pattern')
+            test=ET.SubElement(match,'test',name='family',compare='eq');ET.SubElement(test,'string').text=requested
+            edit=ET.SubElement(match,'edit',name='family',mode='prepend',binding='strong');ET.SubElement(edit,'string').text=replacement
         ET.SubElement(config,'cachedir').text=str(root/'cache')
         path=root/'fonts.conf';ET.ElementTree(config).write(path,encoding='utf-8',xml_declaration=True)
         env={**os.environ,'FONTCONFIG_FILE':str(path)}
