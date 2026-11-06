@@ -70,6 +70,10 @@ pnpm start
 - 图片简历：`backend/data/uploads/boss-resume.png`
 - 上述目录已加入 Git 忽略。数据库包含配置和 API 密钥，未做静态加密，请保护本机权限。单后端进程运行，不要开启多个 Uvicorn workers。
 
+## 离线岗位需求分析（AI / FDE / Agent）
+
+新增可复现的 JD 文本分析实验，使用 TF-IDF、K-Means 与领域词表对照，输出需求统计、聚类质量、代表岗位和图表。该流程只读数据库，不调用模型 API、不操作浏览器、不发送消息。安装、合成演示、真实快照复现及数据边界见 [分析实验说明](experiments/job_demand/README.md)。真实 JD 和报告产物保留在本地 `reports/`，不进入公共仓库。
+
 ## 开发与测试
 
 ```sh
